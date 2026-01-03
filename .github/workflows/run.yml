@@ -1,0 +1,30 @@
+name: Housing Bot
+
+on:
+  schedule:
+    - cron: "0 */24 * * *"   # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Insert demo listing
+        run: python src/ingest.py
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+
+      - name: Send Slack digest
+        run: python src/notify.py
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
